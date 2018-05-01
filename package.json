@@ -1,0 +1,19 @@
+{
+  "name": "react-with-resources",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vilikin/react-with-resources.git"
+  },
+  "author": "Vili Kinnunen",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/vilikin/react-with-resources/issues"
+  },
+  "homepage": "https://github.com/vilikin/react-with-resources#readme"
+}
