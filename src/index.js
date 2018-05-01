@@ -1,9 +1,7 @@
 import React from 'react';
 
-class LibraryComponent extends React.Component {
-    render() {
-        return <div>This is library component</div>
-    }
-}
+const LibraryComponent = () => (
+  <div>This is library</div>
+);
 
 export default LibraryComponent;
