@@ -5,7 +5,7 @@ import LibraryComponent from '../src/index';
 const Index = () => (
   <div>
     Hello React!
-    <LibraryComponent />
+    <LibraryComponent test={1} />
   </div>
 );
 
