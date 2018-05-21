@@ -9,7 +9,12 @@
                     ".jsx"
                 ]
             }
-        ]
+        ],
+        "react/no-typos": "off",
+        "react/require-default-props": "off",
+        "import/prefer-default-export": "off",
+        "no-plusplus": "off",
+        "no-underscore-dangle": "off"
     },
     "env": {
         "browser": true,
