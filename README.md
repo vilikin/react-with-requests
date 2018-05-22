@@ -15,7 +15,65 @@ Coming soonish
 
 ## Usage
 
-Coming soonish
+First, we should define at least one request. Let's start with a simple one.
+
+```js
+// requests.js
+import { Request } from 'react-with-resources';
+
+export const getAllTodoItems = new Request({
+  request: async () => {
+    // Here we define how the todo items should be fetched
+    const response = await fetch('example.com/todos');
+    return await response.json();
+  }
+});
+```
+
+This library uses [Reacts new Context API](https://reactjs.org/docs/context.html). Therefore, we should add Provider on the top of our component tree so that our components can consume state from the RequestStateHandler that actually handles lifecycle of the requests.
+
+```js
+// App.js
+import React from 'react';
+import { Provider } from 'react-with-resources';
+
+class App extends React.Component {
+  render() {
+    return (
+      <Provider>
+        <div>
+          This is my app!
+        </div>
+      </Provider>
+    );
+  }
+}
+```
+
+Now, we can consume the state in components using Consumer.
+
+```js
+// TodoList.js
+import React from 'react';
+import { Consumer } from 'react-with-resources';
+import { getAllTodoItems } from './requests';
+
+const requests = [
+  getAllTodoItems
+];
+
+class TodoList extends React.Component {
+  render() {
+    return (
+      <Consumer requests={requests}>
+        {()
+
+        }
+      </Consumer>
+    );
+  }
+}
+```
 
 ## API Reference
 
