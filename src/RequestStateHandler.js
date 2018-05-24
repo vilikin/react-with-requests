@@ -15,6 +15,11 @@ export default class RequestStateHandler {
 
   findRequestById = id => _.find(this.state.requests, { id });
 
+  getExistingRequest = instance => _.find(
+    this.state.requests,
+    ({ requestInstance }) => requestInstance.equals(instance),
+  );
+
   addStateChangeListener = (callback) => {
     this.stateChangeListeners.push({
       callback,
@@ -45,7 +50,7 @@ export default class RequestStateHandler {
     this.callStateChangeListeners();
   }
 
-  appendRequest = (requestInstance) => {
+  appendRequest = (requestInstance, promise) => {
     const id = _.uniqueId();
 
     this.state.requests.push({
@@ -56,6 +61,7 @@ export default class RequestStateHandler {
       error: null,
       startedAt: new Date(),
       finishedAt: null,
+      promise: 
     });
 
     this.callStateChangeListeners();
@@ -65,6 +71,19 @@ export default class RequestStateHandler {
 
   makeRequest = (requestInstance) => {
     if (!(requestInstance instanceof Request)) throw new Error('Expected instance of Request');
+
+    const requestConfig = requestInstance.getConfig();
+    const existingRequest = this.getExistingRequest(requestInstance);
+
+    if (requestConfig.cache && existingRequest && !existingRequest.error) {
+      return {
+        id: existingRequest.id,
+        promise: Promise.resolve(existingRequest),
+      };
+    } else if (requestConfig.cache && existingRequest) {
+      // TODO: refetch
+      
+    }
 
     const id = this.appendRequest(requestInstance);
 
@@ -82,7 +101,7 @@ export default class RequestStateHandler {
 
     return {
       id,
-      promise: executeRequest(),
+      promise: executeRequest(id),
     };
   }
 }

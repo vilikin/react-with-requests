@@ -7,18 +7,30 @@ import { getConnectionContext } from './ConnectionContext';
 const ConnectionContext = getConnectionContext();
 
 class ConnectedComponent extends Component {
-  state = {
-    requestIds: [],
-  };
-
   constructor(props) {
     super(props);
 
-    
+    this.state = {
+      requests: [],
+    };
+
+    const requests = this.props.requests(this.props);
+    this.componentWillReceiveRequests(requests);
   }
 
   componentWillReceiveProps(nextProps) {
-    const addedRequests = getAddedRequests()
+    const requests = nextProps.requests(nextProps);
+    this.componentWillReceiveRequests(requests);
+  }
+
+  componentWillReceiveRequests = (requests) => {
+
+
+    this.setState({
+      requests: [
+        ...this.state.requests,
+      ]
+    });
   }
 
   getAddedRequests = (newRequests) => {
@@ -50,6 +62,7 @@ ConnectedComponent.propTypes = {
     PropTypes.arrayOf(PropTypes.node),
     PropTypes.node,
   ]),
+  requests: PropTypes.func.isRequired,
 };
 
 /*
