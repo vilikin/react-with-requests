@@ -1,3 +1,9 @@
 import ConnectionProvider from './ConnectionProvider';
+import ConnectedComponent from './ConnectedComponent';
+import Request from './Request';
 
-export { ConnectionProvider };
+export {
+  ConnectedComponent,
+  ConnectionProvider,
+  Request,
+};

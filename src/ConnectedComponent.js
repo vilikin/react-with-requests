@@ -1,12 +1,14 @@
-import React, { Component } from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
 import _ from 'lodash';
+import { connectContext } from 'react-connect-context';
 
 import { getConnectionContext } from './ConnectionContext';
+import RequestStateHandler from './RequestStateHandler';
 
 const ConnectionContext = getConnectionContext();
 
-class ConnectedComponent extends Component {
+class ConnectedComponent extends React.Component {
   constructor(props) {
     super(props);
 
@@ -14,68 +16,110 @@ class ConnectedComponent extends Component {
       requests: [],
     };
 
-    const requests = this.props.requests(this.props);
-    this.componentWillReceiveRequests(requests);
+    const requestInstancesObject = this.props.requests(this.props);
+    this.componentWillReceiveRequestInstances(requestInstancesObject, true);
   }
 
   componentWillReceiveProps(nextProps) {
-    const requests = nextProps.requests(nextProps);
-    this.componentWillReceiveRequests(requests);
+    const requestInstancesObject = nextProps.requests(nextProps);
+    this.componentWillReceiveRequestInstances(requestInstancesObject, false);
   }
 
-  componentWillReceiveRequests = (requests) => {
+  getRequestsAsProps = () => {
+    const requestsFromState = this.state.requests;
+    let requestsFromContext = this.props.__requestState__;
 
+    const isRequestInContext = ({ id }) => _.some(requestsFromContext, { id });
+    const allRequestsInContext = _.every(requestsFromState, isRequestInContext);
 
-    this.setState({
-      requests: [
-        ...this.state.requests,
-      ]
-    });
+    if (!allRequestsInContext) {
+      requestsFromContext = this.props.__requestStateHandler__.getCurrentState();
+    }
+
+    return _.chain(requestsFromContext)
+      .reduce((result, reqFromContext) => {
+        const matchFromState = _.find(this.state.requests, { id: reqFromContext.id });
+        if (matchFromState) {
+          result.push(_.assign(reqFromContext, { name: matchFromState.name }));
+        }
+
+        return result;
+      }, [])
+      .keyBy('name')
+      .mapValues(request => _.pick(request, 'result', 'loading', 'error'))
+      .value();
   }
 
-  getAddedRequests = (newRequests) => {
-    const previousRequestIds = _.cloneDeep(this.state.requestIds);
-    const newRequestIds = _.map(newRequests, req => req.id);
+  componentWillReceiveRequestInstances = (nextRequestInstancesObject, useStateDirectly) => {
+    const previousRequestInstances = _.map(this.state.requests, 'requestInstance');
+    const nextRequestInstances = _.values(nextRequestInstancesObject);
 
-    const comparator = (a, b) => a.id === b.id;
+    if (_.isEqual(previousRequestInstances, nextRequestInstances)) {
+      return;
+    }
 
-    return _.differenceWith(newRequestIds, previousRequestIds, comparator);
-  }
+    const addedRequestInstances = _.differenceWith(
+      nextRequestInstances,
+      previousRequestInstances,
+      (req1, req2) => req1.equals(req2),
+    );
 
-  mapConnectionStateToConsumer = (requestState) => {
+    const removedRequestInstances = _.differenceWith(
+      previousRequestInstances,
+      nextRequestInstances,
+      (req1, req2) => req1.equals(req2),
+    );
 
+    if (_.isEmpty(addedRequestInstances) && _.isEmpty(removedRequestInstances)) {
+      return;
+    }
 
-    return this.props.children(requestState);
+    const remainingRequests = this.state.requests.filter(({ requestInstance }) =>
+      !removedRequestInstances.includes(requestInstance));
+
+    const requestStateHandler = this.props.__requestStateHandler__;
+
+    const newRequests = requestStateHandler.makeMultipleRequests(addedRequestInstances);
+
+    const newRequestsWithNames = _.transform(nextRequestInstancesObject, (result, value, key) => {
+      const matchingNewRequest = _.find(newRequests, { requestInstance: value });
+      if (matchingNewRequest) {
+        result.push({
+          ...matchingNewRequest,
+          name: key,
+        });
+      }
+    }, []);
+
+    const requestsToState = [
+      ...newRequestsWithNames,
+      ...remainingRequests,
+    ];
+
+    if (useStateDirectly) {
+      this.state.requests = requestsToState;
+    } else {
+      this.setState({
+        requests: requestsToState,
+      });
+    }
   }
 
   render() {
-    return (
-      <ConnectionContext.Consumer>
-        {this.mapRequestStateToConsumer}
-      </ConnectionContext.Consumer>
-    );
+    return this.props.children({
+      ...this.getRequestsAsProps(),
+    });
   }
 }
 
 ConnectedComponent.propTypes = {
-  children: PropTypes.oneOfType([
-    PropTypes.arrayOf(PropTypes.node),
-    PropTypes.node,
-  ]),
+  children: PropTypes.func.isRequired,
+
   requests: PropTypes.func.isRequired,
+
+  __requestState__: PropTypes.arrayOf(PropTypes.object).isRequired,
+
+  __requestStateHandler__: PropTypes.instanceOf(RequestStateHandler).isRequired,
 };
 
-/*
-const mapRequestsToProps = (props) => ({
-  photos: photoResource,
-  photo: photoResource.withParams(1),
-})
-
-const component = (
-  <ConnectedComponent requests={mapRequestsToProps}>
-    {({photos, singlePhoto}) =>
-
-    }
-  </ConnectedComponent>
-)
-*/
+export default connectContext(ConnectionContext.Consumer)(ConnectedComponent);

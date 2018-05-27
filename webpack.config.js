@@ -6,8 +6,8 @@ const htmlPlugin = new HtmlWebPackPlugin({
 });
 
 module.exports = {
-  devtool: 'cheap-module-source-map',
-  entry: './demo/index.js',
+  devtool: 'source-map',
+  entry: ['babel-polyfill', './demo/index.js'],
   module: {
     rules: [
       {

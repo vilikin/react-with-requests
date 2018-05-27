@@ -46,19 +46,17 @@ describe('RequestStateHandler', () => {
 
   test('.makeRequest() should handle lifecycle of a successful request', async () => {
     const stateInitial = requestStateHandler.getCurrentState();
-    expect(stateInitial).toEqual({
-      requests: [],
-    });
+    expect(stateInitial).toEqual([]);
 
     const req = requestStateHandler.makeRequest(mockRequestSuccess);
-    const stateWhileLoading = requestStateHandler.getCurrentState().requests[0];
+    const stateWhileLoading = requestStateHandler.getCurrentState()[0];
 
     expect(stateWhileLoading.loading).toBe(true);
     expect(stateWhileLoading.error).toBeNull();
     expect(stateWhileLoading.result).toBeNull();
 
     const result = await req.promise;
-    const stateFinished = requestStateHandler.getCurrentState().requests[0];
+    const stateFinished = requestStateHandler.getCurrentState()[0];
 
     expect(stateFinished.loading).toBe(false);
     expect(stateFinished.error).toBeNull();
@@ -71,7 +69,7 @@ describe('RequestStateHandler', () => {
     try {
       await req.promise;
     } catch (err) {
-      const stateFinished = requestStateHandler.getCurrentState().requests[0];
+      const stateFinished = requestStateHandler.getCurrentState()[0];
 
       expect(stateFinished.loading).toBe(false);
       expect(stateFinished.error).toEqual(err);

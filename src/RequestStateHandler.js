@@ -9,9 +9,13 @@ export default class RequestStateHandler {
 
     this.stateChangeListeners = [];
     this.lastStateChangeListenerId = 0;
+
+    // TODO Remove this
+    window.reqstate = this;
   }
 
-  getCurrentState = () => _.cloneDeep(this.state);
+  // TODO modify state to only contain an array if nothing else needed
+  getCurrentState = () => _.cloneDeep(this.state.requests);
 
   findRequestById = id => _.find(this.state.requests, { id });
 
@@ -34,7 +38,7 @@ export default class RequestStateHandler {
   }
 
   callStateChangeListeners = () => {
-    _.each(this.stateChangeListeners, listener => listener.callback(this.getCurrentState));
+    _.each(this.stateChangeListeners, listener => listener.callback(this.getCurrentState()));
   }
 
   completeRequest = (id, result, error) => {
@@ -50,10 +54,10 @@ export default class RequestStateHandler {
     this.callStateChangeListeners();
   }
 
-  appendRequest = (requestInstance, promise) => {
+  appendRequest = (requestInstance) => {
     const id = _.uniqueId();
 
-    this.state.requests.push({
+    const request = {
       id,
       requestInstance,
       result: null,
@@ -61,47 +65,53 @@ export default class RequestStateHandler {
       error: null,
       startedAt: new Date(),
       finishedAt: null,
-      promise: 
-    });
+    };
+
+    this.state.requests.push(request);
 
     this.callStateChangeListeners();
 
-    return id;
+    return _.cloneDeep(request);
   }
 
   makeRequest = (requestInstance) => {
     if (!(requestInstance instanceof Request)) throw new Error('Expected instance of Request');
-
+    /*
     const requestConfig = requestInstance.getConfig();
     const existingRequest = this.getExistingRequest(requestInstance);
 
-    if (requestConfig.cache && existingRequest && !existingRequest.error) {
-      return {
-        id: existingRequest.id,
-        promise: Promise.resolve(existingRequest),
-      };
-    } else if (requestConfig.cache && existingRequest) {
-      // TODO: refetch
-      
+    if (requestConfig.cache && existingRequest) {
+      return null;
     }
+    */
 
-    const id = this.appendRequest(requestInstance);
+    const request = this.appendRequest(requestInstance);
 
     const executeRequest = async () => {
       try {
         const result = await requestInstance.execute();
-        this.completeRequest(id, result, null);
+        this.completeRequest(request.id, result, null);
 
         return result;
       } catch (error) {
-        this.completeRequest(id, null, error);
+        this.completeRequest(request.id, null, error);
         throw error;
       }
     };
 
     return {
-      id,
-      promise: executeRequest(id),
+      ...request,
+      promise: executeRequest(),
     };
+  }
+
+  makeMultipleRequests = (requestInstances) => {
+    const requests = _.reduce(requestInstances, (result, requestInstance) => {
+      const request = this.makeRequest(requestInstance);
+      result.push(request);
+      return result;
+    }, []);
+
+    return requests;
   }
 }

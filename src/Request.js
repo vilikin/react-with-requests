@@ -1,4 +1,4 @@
-import Joi from 'joi';
+import Joi from 'joi-browser';
 import hash from 'object-hash';
 import _ from 'lodash';
 

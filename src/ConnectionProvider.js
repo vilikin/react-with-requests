@@ -12,7 +12,10 @@ class ConnectionProvider extends Component {
     const requestStateHandler = new RequestStateHandler();
 
     this.state = {
-      ...requestStateHandler.getCurrentState(),
+      // eslint-disable-next-line react/no-unused-state
+      __requestState__: requestStateHandler.getCurrentState(),
+      // eslint-disable-next-line react/no-unused-state
+      __requestStateHandler__: requestStateHandler,
     };
 
     requestStateHandler.addStateChangeListener(this.updateRequestState);
@@ -20,7 +23,8 @@ class ConnectionProvider extends Component {
 
   updateRequestState = (updatedState) => {
     this.setState({
-      ...updatedState,
+      // eslint-disable-next-line react/no-unused-state
+      __requestState__: updatedState,
     });
   }
 
@@ -40,7 +44,4 @@ ConnectionProvider.propTypes = {
   ]),
 };
 
-export {
-  ConnectionProvider,
-  ConnectionContext,
-};
+export default ConnectionProvider;
