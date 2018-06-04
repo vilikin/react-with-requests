@@ -5,7 +5,6 @@ import Adapter from './util/ReactSixteenAdapter';
 import ConnectionProvider from '../src/ConnectionProvider';
 import ConnectedComponent from '../src/ConnectedComponent';
 import Request from '../src/Request';
-import { connect } from 'http2';
 
 Enzyme.configure({ adapter: new Adapter() });
 
@@ -18,33 +17,6 @@ const createExpectedState = (name, result, loading, error) => ({
     error,
   },
 });
-
-const testLifecycle = (
-  mapRequestsToProps,
-  expectedInitialState,
-  expectedEndState,
-  done,
-) => {
-  const mockRenderFunc = jest.fn(params => <div>{JSON.stringify(params)}</div>);
-
-  const App = () => (
-    <ConnectionProvider>
-      <ConnectedComponent requests={mapRequestsToProps}>
-        {mockRenderFunc}
-      </ConnectedComponent>
-    </ConnectionProvider>
-  );
-
-  const component = mount(<App />);
-  const div = component.find('div').first();
-
-  expect(div).toHaveText(JSON.stringify(expectedInitialState));
-
-  setTimeout(() => {
-    expect(div).toHaveText(JSON.stringify(expectedEndState));
-    done();
-  }, 0);
-};
 
 // eslint-disable-next-line react/prop-types
 const MockComponentTree = ({ mrtp }) => (
