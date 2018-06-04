@@ -7,22 +7,28 @@ import {
 } from '../src';
 
 const getOnePost = new Request({
-  request: async (id) => {
-    const response = await fetch(`https://jsonplaceholder.typicode.com/posts/${id}`);
+  // request: async (id) => {
+  //   const response = await fetch(`https://jsonplaceholder.typicode.com/posts/${id}`);
 
-    if (!response.ok) throw response;
+  //   if (!response.ok) throw response;
 
-    return response.json();
+  //   return response.json();
+  // },
+  request: () => {
+    throw new Error('whoopsie');
   },
 });
 
 function renderConditionally(conditions) {
   return ({ post }) => {
     if (post.result) {
+      console.log('got result');
       return conditions.onResult(post.result);
     } else if (post.loading) {
+      console.log('i was loading');
       return conditions.onLoading;
     }
+    console.log('i errored');
 
     return conditions.onError(post.error);
   };
@@ -55,11 +61,12 @@ class Index extends React.Component {
             {renderConditionally({
               onResult: result => (
                 <div>
-                  I got result: {JSON.stringify(result)}
+                  <h1>{result.title}</h1>
+                  <p>{result.body}</p>
                 </div>
               ),
-              onLoading: <div>Loading...</div>,
-              onError: () => 'I think there is an error',
+              onLoading: <h1>Loading...</h1>,
+              onError: () => <h1>Error! Pls help!</h1>,
             })}
           </ConnectedComponent>
         </div>

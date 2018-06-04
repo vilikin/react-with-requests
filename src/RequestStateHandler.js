@@ -87,27 +87,29 @@ export default class RequestStateHandler {
 
     const request = this.appendRequest(requestInstance);
 
-    const executeRequest = async () => {
-      try {
-        const result = await requestInstance.execute();
-        this.completeRequest(request.id, result, null);
-
-        return result;
-      } catch (error) {
-        this.completeRequest(request.id, null, error);
-        throw error;
-      }
-    };
-
     return {
       ...request,
-      promise: executeRequest(),
+      promise: new Promise((resolve, reject) => {
+        requestInstance.execute()
+          .then((result) => {
+            this.completeRequest(request.id, result, null);
+            resolve(result);
+          })
+          .catch((err) => {
+            this.completeRequest(request.id, null, err);
+            reject(err);
+          });
+      }),
     };
   }
 
   makeMultipleRequests = (requestInstances) => {
     const requests = _.reduce(requestInstances, (result, requestInstance) => {
       const request = this.makeRequest(requestInstance);
+      request.promise
+        .catch((err) => {
+          console.error(`Caught error with request #${request.id}: ${err}`);
+        });
       result.push(request);
       return result;
     }, []);

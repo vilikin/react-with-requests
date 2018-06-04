@@ -14,7 +14,8 @@
       ],
       "cwd": "${workspaceFolder}",
       "console": "integratedTerminal",
-      "internalConsoleOptions": "neverOpen"
+      "internalConsoleOptions": "neverOpen",
+      "sourceMaps": true
     },
     {
       "type": "chrome",
