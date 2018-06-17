@@ -31,48 +31,52 @@ const MockComponentTree = ({ mrtp }) => (
 
 describe('ConnectedComponent', () => {
   test('should handle lifecycle of a successful request', (done) => {
-    const mockRequest = new Request({
-      request: async () => 'my success msg',
-    });
-
-    const mapRequestsToProps = () => ({
-      test: mockRequest,
-    });
+    const mapRequestsToProps = () => ([
+      {
+        request: new Request({
+          request: async () => 'my success msg',
+        }),
+        statusProp: 'test',
+        requestProp: 'doTest',
+      },
+    ]);
 
     const component = mount(<MockComponentTree mrtp={mapRequestsToProps} />);
 
     const expectedInitialState = createExpectedState('test', null, true, null);
     const expectedEndState = createExpectedState('test', 'my success msg', false, null);
 
-    expect(component).toHaveText(JSON.stringify(expectedInitialState));
+    expect(JSON.parse(component.text())).toEqual(expectedInitialState);
 
     setTimeout(() => {
-      expect(component).toHaveText(JSON.stringify(expectedEndState));
+      expect(JSON.parse(component.text())).toEqual(expectedEndState);
       done();
     }, 0);
   });
 
   test('should handle lifecycle of a failing request', (done) => {
-    const mockRequest = new Request({
-      request: async () => {
-        // eslint-disable-next-line no-throw-literal
-        throw 'my error msg';
+    const mapRequestsToProps = () => ([
+      {
+        request: new Request({
+          request: async () => {
+            // eslint-disable-next-line no-throw-literal
+            throw 'my error msg';
+          },
+        }),
+        statusProp: 'test',
+        requestProp: 'doTest',
       },
-    });
-
-    const mapRequestsToProps = () => ({
-      test: mockRequest,
-    });
+    ]);
 
     const component = mount(<MockComponentTree mrtp={mapRequestsToProps} />);
 
     const expectedInitialState = createExpectedState('test', null, true, null);
     const expectedEndState = createExpectedState('test', null, false, 'my error msg');
 
-    expect(component).toHaveText(JSON.stringify(expectedInitialState));
+    expect(JSON.parse(component.text())).toEqual(expectedInitialState);
 
     setTimeout(() => {
-      expect(component).toHaveText(JSON.stringify(expectedEndState));
+      expect(JSON.parse(component.text())).toEqual(expectedEndState);
       done();
     }, 0);
   });
@@ -82,9 +86,13 @@ describe('ConnectedComponent', () => {
       request: async id => `result ${id}`,
     });
 
-    const mapRequestsToProps = props => ({
-      test: mockRequest.withParams(props.id),
-    });
+    const mapRequestsToProps = props => ([
+      {
+        request: mockRequest.withParams(props.id),
+        statusProp: 'test',
+        requestProp: 'doTest',
+      },
+    ]);
 
     // eslint-disable-next-line react/prop-types
     const App = ({ id }) => (
@@ -98,20 +106,20 @@ describe('ConnectedComponent', () => {
     const component = mount(<App id={1} />);
 
     let expectedState = createExpectedState('test', null, true, null);
-    expect(component).toHaveText(JSON.stringify(expectedState));
+    expect(JSON.parse(component.text())).toEqual(expectedState);
 
     setTimeout(() => {
       expectedState = createExpectedState('test', 'result 1', false, null);
-      expect(component).toHaveText(JSON.stringify(expectedState));
+      expect(JSON.parse(component.text())).toEqual(expectedState);
 
       component.setProps({ id: 2 });
       expectedState = createExpectedState('test', null, true, null);
-      expect(component).toHaveText(JSON.stringify(expectedState));
+      expect(JSON.parse(component.text())).toEqual(expectedState);
     }, 0);
 
     setTimeout(() => {
       expectedState = createExpectedState('test', 'result 2', false, null);
-      expect(component).toHaveText(JSON.stringify(expectedState));
+      expect(JSON.parse(component.text())).toEqual(expectedState);
       done();
     }, 50);
   });

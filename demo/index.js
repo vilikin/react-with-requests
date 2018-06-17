@@ -22,13 +22,10 @@ const getOnePost = new Request({
 function renderConditionally(conditions) {
   return ({ post }) => {
     if (post.result) {
-      console.log('got result');
       return conditions.onResult(post.result);
     } else if (post.loading) {
-      console.log('i was loading');
       return conditions.onLoading;
     }
-    console.log('i errored');
 
     return conditions.onError(post.error);
   };

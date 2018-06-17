@@ -28,6 +28,12 @@ export const getProductData = new Request({
     // Here we define how the product should be fetched
     const response = await fetch(`example.com/products/${id}`);
     return await response.json();
+  },
+  defaults: {
+    // These can be overriden when connecting request to component
+    executeOnMount: true,
+    requestProp: 'fetchProduct',
+    resultProp: 'product',
   }
 });
 ```
@@ -62,15 +68,21 @@ import { getProductData } from './requests';
 // will contain which request state. Here you can also make the
 // requests change depending on your components props. If request
 // changes, it is automatically executed with new params.
-const mapRequestsToProps = (props) => {
-  product: getProductData.withParams(props.match.params.id)
-}
+const mapRequestsToProps = (props) => ([
+  {
+    request: getProductData.withParams(props.match.params.id),
+    // If you don't want to use the defaults, or haven't provided them:
+    statusProp: 'specialProduct',
+    requestProp: 'fetchSpecialProduct',
+    executeOnMount: true
+  }
+]);
 
 class ProductPage extends React.Component {
   render() {
     return (
       <Consumer requests={mapRequestsToProps}>
-        {({ product, actions }) => (
+        {({ specialProduct, fetchSpecialProduct }) => (
           // Product has 3 properties:
           // - loading (boolean)
           // - error (any)
