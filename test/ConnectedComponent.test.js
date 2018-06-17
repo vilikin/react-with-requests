@@ -10,12 +10,10 @@ Enzyme.configure({ adapter: new Adapter() });
 
 /* UTILS */
 
-const createExpectedState = (name, result, loading, error) => ({
-  [name]: {
-    result,
-    loading,
-    error,
-  },
+const createExpectedState = (result, loading, error) => ({
+  result,
+  loading,
+  error,
 });
 
 // eslint-disable-next-line react/prop-types
@@ -43,13 +41,15 @@ describe('ConnectedComponent', () => {
 
     const component = mount(<MockComponentTree mrtp={mapRequestsToProps} />);
 
-    const expectedInitialState = createExpectedState('test', null, true, null);
-    const expectedEndState = createExpectedState('test', 'my success msg', false, null);
+    const expectedInitialState = createExpectedState(null, true, null);
+    const expectedEndState = createExpectedState('my success msg', false, null);
 
-    expect(JSON.parse(component.text())).toEqual(expectedInitialState);
+    const actualInitialState = JSON.parse(component.text()).test;
+    expect(actualInitialState).toEqual(expectedInitialState);
 
     setTimeout(() => {
-      expect(JSON.parse(component.text())).toEqual(expectedEndState);
+      const actualEndState = JSON.parse(component.text()).test;
+      expect(actualEndState).toEqual(expectedEndState);
       done();
     }, 0);
   });
@@ -70,13 +70,15 @@ describe('ConnectedComponent', () => {
 
     const component = mount(<MockComponentTree mrtp={mapRequestsToProps} />);
 
-    const expectedInitialState = createExpectedState('test', null, true, null);
-    const expectedEndState = createExpectedState('test', null, false, 'my error msg');
+    const expectedInitialState = createExpectedState(null, true, null);
+    const expectedEndState = createExpectedState(null, false, 'my error msg');
 
-    expect(JSON.parse(component.text())).toEqual(expectedInitialState);
+    const actualInitialState = JSON.parse(component.text()).test;
+    expect(actualInitialState).toEqual(expectedInitialState);
 
     setTimeout(() => {
-      expect(JSON.parse(component.text())).toEqual(expectedEndState);
+      const actualEndState = JSON.parse(component.text()).test;
+      expect(actualEndState).toEqual(expectedEndState);
       done();
     }, 0);
   });
@@ -104,24 +106,50 @@ describe('ConnectedComponent', () => {
     );
 
     const component = mount(<App id={1} />);
-
-    let expectedState = createExpectedState('test', null, true, null);
-    expect(JSON.parse(component.text())).toEqual(expectedState);
+    let expectedState = createExpectedState(null, true, null);
+    let actualState = JSON.parse(component.text()).test;
+    expect(actualState).toEqual(expectedState);
 
     setTimeout(() => {
-      expectedState = createExpectedState('test', 'result 1', false, null);
-      expect(JSON.parse(component.text())).toEqual(expectedState);
+      expectedState = createExpectedState('result 1', false, null);
+      actualState = JSON.parse(component.text()).test;
+      expect(actualState).toEqual(expectedState);
 
       component.setProps({ id: 2 });
-      expectedState = createExpectedState('test', null, true, null);
-      expect(JSON.parse(component.text())).toEqual(expectedState);
+      expectedState = createExpectedState(null, true, null);
+      actualState = JSON.parse(component.text()).test;
+      expect(actualState).toEqual(expectedState);
     }, 0);
 
     setTimeout(() => {
-      expectedState = createExpectedState('test', 'result 2', false, null);
-      expect(JSON.parse(component.text())).toEqual(expectedState);
+      expectedState = createExpectedState('result 2', false, null);
+      actualState = JSON.parse(component.text()).test;
+      expect(actualState).toEqual(expectedState);
       done();
     }, 50);
+  });
+
+  test('should use default prop mappings from config if no prop mappings specified', () => {
+    const mapRequestsToProps = () => ([
+      {
+        request: new Request({
+          request: async () => {
+            // eslint-disable-next-line no-throw-literal
+            throw 'my error msg';
+          },
+          defaultMapping: {
+            statusProp: 'test',
+            requestProp: 'doTest',
+          },
+        }),
+      },
+    ]);
+
+    const component = mount(<MockComponentTree mrtp={mapRequestsToProps} />);
+
+    const actualState = JSON.parse(component.text());
+    expect(actualState).toHaveProperty('test');
+    expect(actualState).toHaveProperty('doTest');
   });
 });
 
