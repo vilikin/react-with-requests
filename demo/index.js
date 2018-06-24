@@ -31,9 +31,13 @@ function renderConditionally(conditions) {
   };
 }
 
-const mapRequestsToProps = props => ({
-  post: getOnePost.withParams(props.id),
-});
+const mapRequestsToProps = props => ([
+  {
+    request: getOnePost.withParams(props.id),
+    statusProp: 'post',
+    requestProp: 'fetchPost',
+  },
+]);
 
 class Index extends React.Component {
   state = {

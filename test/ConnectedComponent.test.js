@@ -1,5 +1,6 @@
 import Enzyme, { mount } from 'enzyme';
 import React from 'react';
+import * as _ from 'lodash';
 import Adapter from './util/ReactSixteenAdapter';
 
 import ConnectionProvider from '../src/ConnectionProvider';
@@ -17,13 +18,18 @@ const createExpectedState = (result, loading, error) => ({
 });
 
 // eslint-disable-next-line react/prop-types
-const MockComponentTree = ({ mrtp }) => (
+const MockComponentTree = ({ mrtp, render }) => (
   <ConnectionProvider>
     <ConnectedComponent requests={mrtp}>
-      {params => <div>{JSON.stringify(params)}</div>}
+      {render || (params => <div>{JSON.stringify(params)}</div>)}
     </ConnectedComponent>
   </ConnectionProvider>
 );
+
+const lastCalledWith = mockRender => _.chain(mockRender.mock.calls)
+  .last()
+  .first()
+  .value();
 
 /* TESTS */
 
@@ -39,17 +45,16 @@ describe('ConnectedComponent', () => {
       },
     ]);
 
-    const component = mount(<MockComponentTree mrtp={mapRequestsToProps} />);
+    const mockRender = jest.fn(() => null);
+    mount(<MockComponentTree mrtp={mapRequestsToProps} render={mockRender} />);
 
     const expectedInitialState = createExpectedState(null, true, null);
     const expectedEndState = createExpectedState('my success msg', false, null);
 
-    const actualInitialState = JSON.parse(component.text()).test;
-    expect(actualInitialState).toEqual(expectedInitialState);
+    expect(lastCalledWith(mockRender).test).toEqual(expectedInitialState);
 
     setTimeout(() => {
-      const actualEndState = JSON.parse(component.text()).test;
-      expect(actualEndState).toEqual(expectedEndState);
+      expect(lastCalledWith(mockRender).test).toEqual(expectedEndState);
       done();
     }, 0);
   });
@@ -67,18 +72,16 @@ describe('ConnectedComponent', () => {
         requestProp: 'doTest',
       },
     ]);
-
-    const component = mount(<MockComponentTree mrtp={mapRequestsToProps} />);
+    const mockRender = jest.fn(() => null);
+    mount(<MockComponentTree mrtp={mapRequestsToProps} render={mockRender} />);
 
     const expectedInitialState = createExpectedState(null, true, null);
     const expectedEndState = createExpectedState(null, false, 'my error msg');
 
-    const actualInitialState = JSON.parse(component.text()).test;
-    expect(actualInitialState).toEqual(expectedInitialState);
+    expect(lastCalledWith(mockRender).test).toEqual(expectedInitialState);
 
     setTimeout(() => {
-      const actualEndState = JSON.parse(component.text()).test;
-      expect(actualEndState).toEqual(expectedEndState);
+      expect(lastCalledWith(mockRender).test).toEqual(expectedEndState);
       done();
     }, 0);
   });
@@ -96,47 +99,42 @@ describe('ConnectedComponent', () => {
       },
     ]);
 
+    const mockRender = jest.fn(() => null);
+
     // eslint-disable-next-line react/prop-types
     const App = ({ id }) => (
       <ConnectionProvider>
         <ConnectedComponent requests={mapRequestsToProps} id={id}>
-          {params => <div>{JSON.stringify(params)}</div>}
+          {mockRender}
         </ConnectedComponent>
       </ConnectionProvider>
     );
 
     const component = mount(<App id={1} />);
     let expectedState = createExpectedState(null, true, null);
-    let actualState = JSON.parse(component.text()).test;
-    expect(actualState).toEqual(expectedState);
+    expect(lastCalledWith(mockRender).test).toEqual(expectedState);
 
     setTimeout(() => {
       expectedState = createExpectedState('result 1', false, null);
-      actualState = JSON.parse(component.text()).test;
-      expect(actualState).toEqual(expectedState);
+      expect(lastCalledWith(mockRender).test).toEqual(expectedState);
 
       component.setProps({ id: 2 });
       expectedState = createExpectedState(null, true, null);
-      actualState = JSON.parse(component.text()).test;
-      expect(actualState).toEqual(expectedState);
+      expect(lastCalledWith(mockRender).test).toEqual(expectedState);
     }, 0);
 
     setTimeout(() => {
       expectedState = createExpectedState('result 2', false, null);
-      actualState = JSON.parse(component.text()).test;
-      expect(actualState).toEqual(expectedState);
+      expect(lastCalledWith(mockRender).test).toEqual(expectedState);
       done();
     }, 50);
   });
 
-  test('should use default prop mappings from config if no prop mappings specified', () => {
+  test('should make request again when request prop is called', (done) => {
     const mapRequestsToProps = () => ([
       {
         request: new Request({
-          request: async () => {
-            // eslint-disable-next-line no-throw-literal
-            throw 'my error msg';
-          },
+          request: async () => 'result',
           defaultMapping: {
             statusProp: 'test',
             requestProp: 'doTest',
@@ -145,11 +143,43 @@ describe('ConnectedComponent', () => {
       },
     ]);
 
-    const component = mount(<MockComponentTree mrtp={mapRequestsToProps} />);
+    const mockRender = jest.fn(() => null);
+    mount(<MockComponentTree mrtp={mapRequestsToProps} render={mockRender} />);
+    let expectedState;
 
-    const actualState = JSON.parse(component.text());
-    expect(actualState).toHaveProperty('test');
-    expect(actualState).toHaveProperty('doTest');
+    setTimeout(() => {
+      expectedState = createExpectedState('result', false, null);
+      expect(lastCalledWith(mockRender).test).toEqual(expectedState);
+      const promise = lastCalledWith(mockRender).doTest();
+      expectedState = createExpectedState(null, true, null);
+      expect(lastCalledWith(mockRender).test).toEqual(expectedState);
+
+      promise.then((result) => {
+        expect(result).toEqual('result');
+        expectedState = createExpectedState('result', false, null);
+        expect(lastCalledWith(mockRender).test).toEqual(expectedState);
+        done();
+      });
+    }, 0);
+  });
+
+  test('should use default prop mappings from config if no prop mappings specified', () => {
+    const mapRequestsToProps = () => ([
+      {
+        request: new Request({
+          request: async () => 'result',
+          defaultMapping: {
+            statusProp: 'test',
+            requestProp: 'doTest',
+          },
+        }),
+      },
+    ]);
+
+    const mockRender = jest.fn(() => null);
+    mount(<MockComponentTree mrtp={mapRequestsToProps} render={mockRender} />);
+
+    expect(lastCalledWith(mockRender)).toHaveProperty('doTest');
+    expect(lastCalledWith(mockRender)).toHaveProperty('test');
   });
 });
-

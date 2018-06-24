@@ -101,9 +101,13 @@ class ConnectedComponent extends React.Component {
     const remainingRequests = this.state.requests.filter(({ requestInstance }) =>
       !removedRequestInstances.includes(requestInstance));
 
+    this.executeRequests(addedRequestInstances, remainingRequests, updateStateDirectly);
+  }
+
+  executeRequests = (requestInstances, remainingRequests, updateStateDirectly) => {
     const requestStateHandler = this.props.__requestStateHandler__;
 
-    const executedRequests = requestStateHandler.makeMultipleRequests(addedRequestInstances);
+    const executedRequests = requestStateHandler.makeMultipleRequests(requestInstances);
 
     const executedRequestsStripped = _.map(executedRequests, executedRequest =>
       _.pick(executedRequest, 'id', 'requestInstance'));
@@ -112,6 +116,8 @@ class ConnectedComponent extends React.Component {
       ...executedRequestsStripped,
       ...remainingRequests,
     ], updateStateDirectly);
+
+    return executedRequests;
   }
 
   areAllRequestsInContext = () => {
@@ -172,13 +178,31 @@ class ConnectedComponent extends React.Component {
       _.pick(contextState, 'error', 'loading', 'result'));
   }
 
-  getRequestProps = () => ({});
+  getRequestProps = () => {
+    const requestsByRequestProp = this.getRequestsByKey('requestProp');
+
+    return _.mapValues(requestsByRequestProp, ({ requestInstance }) =>
+      () => {
+        const { requests } = this.state;
+
+        const remainingRequests = _.filter(requests, request =>
+          !request.requestInstance.equals(requestInstance));
+
+        const executedRequests = this.executeRequests([requestInstance], remainingRequests, false);
+
+        const { promise } = _.first(executedRequests);
+
+        return promise;
+      });
+  };
 
   render() {
-    return this.props.children({
-      ...this.getStatusProps(),
-      ...this.getRequestProps(),
-    });
+    const statusProps = this.getStatusProps();
+    const requestProps = this.getRequestProps();
+
+    const passPropsToChildren = _.merge(statusProps, requestProps);
+
+    return this.props.children(passPropsToChildren);
   }
 }
 
