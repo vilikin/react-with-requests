@@ -163,6 +163,42 @@ describe('ConnectedComponent', () => {
     }, 0);
   });
 
+  test('should allow making unmapped requests with status prop', (done) => {
+    const mockRender = jest.fn(() => null);
+    mount(<MockComponentTree mrtp={() => []} render={mockRender} />);
+    const props = lastCalledWith(mockRender);
+
+    expect(props).toHaveProperty('executeRequest');
+    props.executeRequest(new Request({
+      request: async () => 'result',
+    }), 'test');
+
+    let expectedState = createExpectedState(null, true, null);
+    expect(lastCalledWith(mockRender).test).toEqual(expectedState);
+
+    setTimeout(() => {
+      expectedState = createExpectedState('result', false, null);
+      expect(lastCalledWith(mockRender).test).toEqual(expectedState);
+      done();
+    }, 0);
+  });
+
+  test('should allow making unmapped requests without status prop', (done) => {
+    const mockRender = jest.fn(() => null);
+    mount(<MockComponentTree mrtp={() => []} render={mockRender} />);
+    const props = lastCalledWith(mockRender);
+
+    expect(props).toHaveProperty('executeRequest');
+    const promise = props.executeRequest(new Request({
+      request: async () => 'result',
+    }));
+
+    promise.then((result) => {
+      expect(result).toEqual('result');
+      done();
+    });
+  });
+
   test('should use default prop mappings from config if no prop mappings specified', () => {
     const mapRequestsToProps = () => ([
       {

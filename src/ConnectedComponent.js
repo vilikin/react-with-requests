@@ -33,6 +33,7 @@ class ConnectedComponent extends React.Component {
 
     this.state = {
       requests: [],
+      unmappedRequests: [],
     };
 
     const requestMapping = this.getRequestMapping(this.props);
@@ -120,6 +121,25 @@ class ConnectedComponent extends React.Component {
     return executedRequests;
   }
 
+  executeUnmappedRequest = (requestInstance, statusProp) => {
+    const requestStateHandler = this.props.__requestStateHandler__;
+    const { promise, id } = requestStateHandler.makeRequest(requestInstance);
+
+    if (_.isString(statusProp) && !_.isEmpty(statusProp)) {
+      this.setState({
+        unmappedRequests: [
+          ...this.state.unmappedRequests,
+          {
+            id,
+            statusProp,
+          },
+        ],
+      });
+    }
+
+    return promise;
+  }
+
   areAllRequestsInContext = () => {
     const requestsFromState = this.state.requests;
     const requestsFromContext = this.props.__requestState__;
@@ -163,6 +183,13 @@ class ConnectedComponent extends React.Component {
     });
   }
 
+  getUnmappedRequestsByKey = (key) => {
+    const { unmappedRequests } = this.state;
+    const unmappedRequestsWithContextState = this.mapContextStateToRequests(unmappedRequests);
+
+    return _.keyBy(unmappedRequestsWithContextState, key);
+  }
+
   getRequestsByKey = (key) => {
     const requestsWithContextState = this.mapContextStateToRequests(this.state.requests);
     const requests = this.mergeRequestsWithMapping(requestsWithContextState);
@@ -174,8 +201,13 @@ class ConnectedComponent extends React.Component {
 
   getStatusProps = () => {
     const requestsByStatusProp = this.getRequestsByKey('statusProp');
-    return _.mapValues(requestsByStatusProp, ({ contextState }) =>
-      _.pick(contextState, 'error', 'loading', 'result'));
+    const unmappedRequestsByStatusProp = this.getUnmappedRequestsByKey('statusProp');
+
+    return _.chain(unmappedRequestsByStatusProp)
+      .merge(requestsByStatusProp)
+      .mapValues(({ contextState }) =>
+        _.pick(contextState, 'error', 'loading', 'result'))
+      .value();
   }
 
   getRequestProps = () => {
@@ -199,8 +231,11 @@ class ConnectedComponent extends React.Component {
   render() {
     const statusProps = this.getStatusProps();
     const requestProps = this.getRequestProps();
+    const standardtMethods = {
+      executeRequest: this.executeUnmappedRequest,
+    };
 
-    const passPropsToChildren = _.merge(statusProps, requestProps);
+    const passPropsToChildren = _.merge(statusProps, requestProps, standardtMethods);
 
     return this.props.children(passPropsToChildren);
   }
