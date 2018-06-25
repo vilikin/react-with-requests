@@ -235,11 +235,12 @@ class ConnectedComponent extends React.Component {
   render() {
     const statusProps = this.getStatusProps();
     const requestProps = this.getRequestProps();
-    const standardtMethods = {
+
+    const passPropsToChildren = {
+      ...statusProps,
+      ...requestProps,
       executeRequest: this.executeUnmappedRequest,
     };
-
-    const passPropsToChildren = _.merge(statusProps, requestProps, standardtMethods);
 
     return this.props.children(passPropsToChildren);
   }
