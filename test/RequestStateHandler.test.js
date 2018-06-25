@@ -77,6 +77,29 @@ describe('RequestStateHandler', () => {
     }
   });
 
+  test('.makeRequest() should transform error when transform function is provided', async () => {
+    const request = new Request({
+      request: async () => { throw new Error('404'); },
+      transformError: (originalError) => {
+        if (originalError.message === '404') {
+          return 'Not found';
+        }
+
+        return 'Unknown';
+      },
+    });
+
+    const req = requestStateHandler.makeRequest(request);
+
+    try {
+      await req.promise;
+    } catch (err) {
+      const stateFinished = requestStateHandler.getCurrentState()[0];
+
+      expect(stateFinished.error).toEqual('Not found');
+    }
+  });
+
   test('.addStateChangeListener() should subscribe to state changes', async () => {
     const mockListener = jest.fn();
     const listenerId = requestStateHandler.addStateChangeListener(mockListener);

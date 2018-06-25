@@ -4,6 +4,7 @@ import _ from 'lodash';
 
 const configSchema = Joi.object({
   request: Joi.func().required(),
+  transformError: Joi.func(),
   defaultMapping: Joi.object({
     statusProp: Joi.string(),
     requestProp: Joi.string(),

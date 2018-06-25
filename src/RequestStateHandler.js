@@ -76,14 +76,7 @@ export default class RequestStateHandler {
 
   makeRequest = (requestInstance) => {
     if (!(requestInstance instanceof Request)) throw new Error('Expected instance of Request');
-    /*
-    const requestConfig = requestInstance.getConfig();
-    const existingRequest = this.getExistingRequest(requestInstance);
-
-    if (requestConfig.cache && existingRequest) {
-      return null;
-    }
-    */
+    const config = requestInstance.getConfig();
 
     const request = this.appendRequest(requestInstance);
 
@@ -95,9 +88,12 @@ export default class RequestStateHandler {
             this.completeRequest(request.id, result, null);
             resolve(result);
           })
-          .catch((err) => {
-            this.completeRequest(request.id, null, err);
-            reject(err);
+          .catch((originalError) => {
+            const error = config.transformError ?
+              config.transformError(originalError) : originalError;
+
+            this.completeRequest(request.id, null, error);
+            reject(error);
           });
       }),
     };
