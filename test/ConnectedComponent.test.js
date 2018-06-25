@@ -145,10 +145,9 @@ describe('ConnectedComponent', () => {
 
     const mockRender = jest.fn(() => null);
     mount(<MockComponentTree mrtp={mapRequestsToProps} render={mockRender} />);
-    let expectedState;
 
     setTimeout(() => {
-      expectedState = createExpectedState('result', false, null);
+      let expectedState = createExpectedState('result', false, null);
       expect(lastCalledWith(mockRender).test).toEqual(expectedState);
       const promise = lastCalledWith(mockRender).doTest();
       expectedState = createExpectedState(null, true, null);
@@ -197,6 +196,35 @@ describe('ConnectedComponent', () => {
       expect(result).toEqual('result');
       done();
     });
+  });
+
+  test('should not execute request on mount if executeOnMount is false', (done) => {
+    const mapRequestsToProps = () => ([
+      {
+        request: new Request({
+          request: async () => 'result',
+        }),
+        statusProp: 'test',
+        requestProp: 'doTest',
+        executeOnMount: false,
+      },
+    ]);
+
+    const mockRender = jest.fn(() => null);
+    mount(<MockComponentTree mrtp={mapRequestsToProps} render={mockRender} />);
+
+    let expectedState = createExpectedState(null, false, null);
+    expect(lastCalledWith(mockRender).test).toEqual(expectedState);
+
+    lastCalledWith(mockRender).doTest();
+    expectedState = createExpectedState(null, true, null);
+    expect(lastCalledWith(mockRender).test).toEqual(expectedState);
+
+    setTimeout(() => {
+      expectedState = createExpectedState('result', false, null);
+      expect(lastCalledWith(mockRender).test).toEqual(expectedState);
+      done();
+    }, 0);
   });
 
   test('should use default prop mappings from config if no prop mappings specified', () => {

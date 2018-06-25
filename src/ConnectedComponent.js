@@ -21,9 +21,9 @@ const defaultMappingValues = {
   executeOnMount: true,
 };
 
-const compareRequest = (requestInstance1, requestInstance2) => _.differenceWith(
-  requestInstance1,
-  requestInstance2,
+const compareRequests = (requestInstances1, requestInstances2) => _.differenceWith(
+  requestInstances1,
+  requestInstances2,
   (req1, req2) => req1.equals(req2),
 );
 
@@ -73,7 +73,7 @@ class ConnectedComponent extends React.Component {
     this.componentWillReceiveRequestMapping(requestMapping, false);
   }
 
-  updateRequestState = (newRequestState, updateStateDirectly) => {
+  updateLocalRequestState = (newRequestState, updateStateDirectly) => {
     if (updateStateDirectly) {
       this.state.requests = newRequestState;
     } else {
@@ -85,19 +85,20 @@ class ConnectedComponent extends React.Component {
 
   componentWillReceiveRequestMapping = (nextRequestMapping, updateStateDirectly) => {
     const previousRequestInstances = _.map(this.state.requests, 'requestInstance');
-    const nextRequestInstances = _.map(nextRequestMapping, 'request');
 
-    if (_.isEqual(previousRequestInstances, nextRequestInstances)) {
-      return;
-    }
+    const nextRequestInstances = _.chain(nextRequestMapping)
+      .filter({ executeOnMount: true })
+      .map('request')
+      .value();
 
-    const addedRequestInstances = compareRequest(nextRequestInstances, previousRequestInstances);
+    const nextRequestInstancesUnfiltered = _.map(nextRequestMapping, 'request');
 
-    const removedRequestInstances = compareRequest(previousRequestInstances, nextRequestInstances);
+    const addedRequestInstances = compareRequests(nextRequestInstances, previousRequestInstances);
 
-    if (_.isEmpty(addedRequestInstances) && _.isEmpty(removedRequestInstances)) {
-      return;
-    }
+    const removedRequestInstances = compareRequests(
+      previousRequestInstances,
+      nextRequestInstancesUnfiltered,
+    );
 
     const remainingRequests = this.state.requests.filter(({ requestInstance }) =>
       !removedRequestInstances.includes(requestInstance));
@@ -113,7 +114,7 @@ class ConnectedComponent extends React.Component {
     const executedRequestsStripped = _.map(executedRequests, executedRequest =>
       _.pick(executedRequest, 'id', 'requestInstance'));
 
-    this.updateRequestState([
+    this.updateLocalRequestState([
       ...executedRequestsStripped,
       ...remainingRequests,
     ], updateStateDirectly);
@@ -177,7 +178,7 @@ class ConnectedComponent extends React.Component {
         requestInstance.equals(requestDefinition.request));
 
       return {
-        ...requestDefinition,
+        mapping: requestDefinition,
         ...match,
       };
     });
@@ -195,7 +196,7 @@ class ConnectedComponent extends React.Component {
     const requests = this.mergeRequestsWithMapping(requestsWithContextState);
 
     return _.chain(requests)
-      .keyBy(key)
+      .keyBy(request => request.mapping[key])
       .value();
   }
 
@@ -206,21 +207,24 @@ class ConnectedComponent extends React.Component {
     return _.chain(unmappedRequestsByStatusProp)
       .merge(requestsByStatusProp)
       .mapValues(({ contextState }) =>
-        _.pick(contextState, 'error', 'loading', 'result'))
+        contextState ?
+          _.pick(contextState, 'error', 'loading', 'result')
+          :
+          { error: null, loading: false, result: null })
       .value();
   }
 
   getRequestProps = () => {
     const requestsByRequestProp = this.getRequestsByKey('requestProp');
 
-    return _.mapValues(requestsByRequestProp, ({ requestInstance }) =>
+    return _.mapValues(requestsByRequestProp, ({ mapping }) =>
       () => {
         const { requests } = this.state;
 
         const remainingRequests = _.filter(requests, request =>
-          !request.requestInstance.equals(requestInstance));
+          !request.requestInstance.equals(mapping.request));
 
-        const executedRequests = this.executeRequests([requestInstance], remainingRequests, false);
+        const executedRequests = this.executeRequests([mapping.request], remainingRequests, false);
 
         const { promise } = _.first(executedRequests);
 
