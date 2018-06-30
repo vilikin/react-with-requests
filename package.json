@@ -1,8 +1,8 @@
 {
-  "name": "react-with-resources",
+  "name": "react-with-requests",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "dist/main.js",
   "scripts": {
     "start": "webpack-dev-server --mode development",
     "build": "webpack --mode production",
@@ -10,23 +10,18 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/vilikin/react-with-resources.git"
+    "url": "git+https://github.com/vilikin/react-with-requests.git"
   },
   "author": "Vili Kinnunen",
   "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/vilikin/react-with-resources/issues"
-  },
-  "homepage": "https://github.com/vilikin/react-with-resources#readme",
+  "homepage": "https://github.com/vilikin/react-with-requests#readme",
   "dependencies": {
-    "babel-polyfill": "^6.26.0",
+    "react": "^16.3.2",
     "joi-browser": "^13.0.1",
     "lodash": "^4.17.10",
     "object-hash": "^1.3.0",
     "prop-types": "^15.6.1",
-    "react": "^16.3.2",
-    "react-connect-context": "^1.0.2",
-    "react-dom": "^16.3.2"
+    "react-connect-context": "^1.0.2"
   },
   "devDependencies": {
     "babel-core": "^6.26.3",
@@ -44,7 +39,6 @@
     "eslint-plugin-import": "^2.11.0",
     "eslint-plugin-jsx-a11y": "^6.0.3",
     "eslint-plugin-react": "^7.7.0",
-    "html-webpack-plugin": "^3.2.0",
     "jest": "^22.4.3",
     "jest-enzyme": "^6.0.0",
     "react-reconciler": "^0.11.0",
