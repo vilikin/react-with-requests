@@ -246,4 +246,24 @@ describe('RequestStateConsumer', () => {
     expect(lastCalledWith(mockRender)).toHaveProperty('doTest');
     expect(lastCalledWith(mockRender)).toHaveProperty('test');
   });
+
+  test('should allow using plain requests in the mapping, if config has mapping', () => {
+    const request = new Request({
+      request: async () => 'result',
+      defaultMapping: {
+        statusProp: 'test',
+        requestProp: 'doTest',
+      },
+    });
+
+    const mapRequestsToProps = () => ([
+      request,
+    ]);
+
+    const mockRender = jest.fn(() => null);
+    mount(<MockComponentTree mrtp={mapRequestsToProps} render={mockRender} />);
+
+    expect(lastCalledWith(mockRender)).toHaveProperty('doTest');
+    expect(lastCalledWith(mockRender)).toHaveProperty('test');
+  });
 });

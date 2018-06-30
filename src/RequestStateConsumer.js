@@ -10,12 +10,12 @@ import RequestStateHandler from './RequestStateHandler';
 
 const { Consumer } = getRequestStateContext();
 
-const requestMappingSchema = Joi.array().items(Joi.object({
+const requestMappingSchema = Joi.object({
   request: Joi.object().type(Request).required(),
   statusProp: Joi.string().required(),
   requestProp: Joi.string().required(),
   executeOnMount: Joi.boolean().required(),
-}));
+});
 
 const defaultMappingValues = {
   executeOnMount: true,
@@ -51,19 +51,23 @@ class RequestStateConsumer extends React.Component {
     }
 
     const requestMappingWithDefaults = _.map(requestMapping, (mapping) => {
-      const config = mapping.request.getConfig();
+      const mappingObject = mapping instanceof Request ?
+        { request: mapping }
+        :
+        mapping;
+
+      const config = mappingObject.request.getConfig();
+
       // use config as a base, merge properties from global defaults
       const defaultProperties = _.defaults(config.defaultMapping, defaultMappingValues);
 
       // use directly defined mapping values as base, merge defaults from config and global defaults
-      return _.defaults(mapping, defaultProperties);
+      const mappingWithDefaults = _.defaults(mappingObject, defaultProperties);
+
+      Joi.assert(mappingWithDefaults, requestMappingSchema);
+
+      return mappingWithDefaults;
     });
-
-    const { error } = Joi.validate(requestMappingWithDefaults, requestMappingSchema);
-
-    if (error) {
-      throw new Error(`Request mapping function should return an array of request definitions: ${error}`);
-    }
 
     return requestMappingWithDefaults;
   }
