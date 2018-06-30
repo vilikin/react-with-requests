@@ -1,9 +1,9 @@
-import ConnectionProvider from './ConnectionProvider';
-import ConnectedComponent from './ConnectedComponent';
+import RequestStateProvider from './RequestStateProvider';
+import RequestStateConsumer from './RequestStateConsumer';
 import Request from './Request';
 
 export {
-  ConnectedComponent,
-  ConnectionProvider,
+  RequestStateConsumer,
+  RequestStateProvider,
   Request,
 };

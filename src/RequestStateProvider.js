@@ -1,11 +1,11 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import RequestStateHandler from './RequestStateHandler';
-import { getConnectionContext } from './ConnectionContext';
+import { getRequestStateContext } from './RequestStateContext';
 
-const ConnectionContext = getConnectionContext();
+const { Provider } = getRequestStateContext();
 
-class ConnectionProvider extends Component {
+class RequestStateProvider extends Component {
   constructor(props) {
     super(props);
 
@@ -30,18 +30,18 @@ class ConnectionProvider extends Component {
 
   render() {
     return (
-      <ConnectionContext.Provider value={this.state}>
+      <Provider value={this.state}>
         {this.props.children}
-      </ConnectionContext.Provider>
+      </Provider>
     );
   }
 }
 
-ConnectionProvider.propTypes = {
+RequestStateProvider.propTypes = {
   children: PropTypes.oneOfType([
     PropTypes.arrayOf(PropTypes.node),
     PropTypes.node,
   ]),
 };
 
-export default ConnectionProvider;
+export default RequestStateProvider;

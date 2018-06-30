@@ -5,10 +5,10 @@ import { connectContext } from 'react-connect-context';
 import Joi from 'joi-browser';
 import Request from './Request';
 
-import { getConnectionContext } from './ConnectionContext';
+import { getRequestStateContext } from './RequestStateContext';
 import RequestStateHandler from './RequestStateHandler';
 
-const ConnectionContext = getConnectionContext();
+const { Consumer } = getRequestStateContext();
 
 const requestMappingSchema = Joi.array().items(Joi.object({
   request: Joi.object().type(Request).required(),
@@ -27,7 +27,7 @@ const compareRequests = (requestInstances1, requestInstances2) => _.differenceWi
   (req1, req2) => req1.equals(req2),
 );
 
-class ConnectedComponent extends React.Component {
+class RequestStateConsumer extends React.Component {
   constructor(props) {
     super(props);
 
@@ -246,7 +246,7 @@ class ConnectedComponent extends React.Component {
   }
 }
 
-ConnectedComponent.propTypes = {
+RequestStateConsumer.propTypes = {
   children: PropTypes.func.isRequired,
 
   // eslint-disable-next-line react/no-unused-prop-types
@@ -257,4 +257,4 @@ ConnectedComponent.propTypes = {
   __requestStateHandler__: PropTypes.instanceOf(RequestStateHandler).isRequired,
 };
 
-export default connectContext(ConnectionContext.Consumer)(ConnectedComponent);
+export default connectContext(Consumer)(RequestStateConsumer);

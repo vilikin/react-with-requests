@@ -3,8 +3,8 @@ import React from 'react';
 import * as _ from 'lodash';
 import Adapter from './util/ReactSixteenAdapter';
 
-import ConnectionProvider from '../src/ConnectionProvider';
-import ConnectedComponent from '../src/ConnectedComponent';
+import RequestStateProvider from '../src/RequestStateProvider';
+import RequestStateConsumer from '../src/RequestStateConsumer';
 import Request from '../src/Request';
 
 Enzyme.configure({ adapter: new Adapter() });
@@ -19,11 +19,11 @@ const createExpectedState = (result, loading, error) => ({
 
 // eslint-disable-next-line react/prop-types
 const MockComponentTree = ({ mrtp, render }) => (
-  <ConnectionProvider>
-    <ConnectedComponent requests={mrtp}>
+  <RequestStateProvider>
+    <RequestStateConsumer requests={mrtp}>
       {render || (params => <div>{JSON.stringify(params)}</div>)}
-    </ConnectedComponent>
-  </ConnectionProvider>
+    </RequestStateConsumer>
+  </RequestStateProvider>
 );
 
 const lastCalledWith = mockRender => _.chain(mockRender.mock.calls)
@@ -33,7 +33,7 @@ const lastCalledWith = mockRender => _.chain(mockRender.mock.calls)
 
 /* TESTS */
 
-describe('ConnectedComponent', () => {
+describe('RequestStateConsumer', () => {
   test('should handle lifecycle of a successful request', (done) => {
     const mapRequestsToProps = () => ([
       {
@@ -103,11 +103,11 @@ describe('ConnectedComponent', () => {
 
     // eslint-disable-next-line react/prop-types
     const App = ({ id }) => (
-      <ConnectionProvider>
-        <ConnectedComponent requests={mapRequestsToProps} id={id}>
+      <RequestStateProvider>
+        <RequestStateConsumer requests={mapRequestsToProps} id={id}>
           {mockRender}
-        </ConnectedComponent>
-      </ConnectionProvider>
+        </RequestStateConsumer>
+      </RequestStateProvider>
     );
 
     const component = mount(<App id={1} />);

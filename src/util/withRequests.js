@@ -1,19 +1,19 @@
 import React from 'react';
-import ConnectedComponent from '../ConnectedComponent';
+import RequestStateConsumer from '../RequestStateConsumer';
 
 function withRequests(requests) {
   return (Component) => {
     const ComponentWithRequests = props => (
-      <ConnectedComponent requests={requests} {...props}>
-        {(connectedProps) => {
+      <RequestStateConsumer requests={requests} {...props}>
+        {(requestStateProps) => {
           const mergedProps = {
             ...props,
-            ...connectedProps,
+            ...requestStateProps,
           };
 
           return <Component {...mergedProps} />;
         }}
-      </ConnectedComponent>
+      </RequestStateConsumer>
     );
 
     return ComponentWithRequests;

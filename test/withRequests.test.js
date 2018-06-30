@@ -2,7 +2,7 @@ import Enzyme, { mount } from 'enzyme';
 import React from 'react';
 import Adapter from './util/ReactSixteenAdapter';
 
-import ConnectionProvider from '../src/ConnectionProvider';
+import RequestStateProvider from '../src/RequestStateProvider';
 import withRequests from '../src/util/withRequests';
 import Request from '../src/Request';
 
@@ -11,7 +11,7 @@ Enzyme.configure({ adapter: new Adapter() });
 /* TESTS */
 
 describe('HOC created by withResources utility', () => {
-  test('should provide props from ConnectedComponent to wrapped component', () => {
+  test('should provide props from RequestStateConsumer to wrapped component', () => {
     const mapRequestsToProps = () => ([
       {
         request: new Request({
@@ -31,9 +31,9 @@ describe('HOC created by withResources utility', () => {
     const MockComponentWithRequests = withRequests(mapRequestsToProps)(MockComponent);
 
     const MockComponentTree = () => (
-      <ConnectionProvider>
+      <RequestStateProvider>
         <MockComponentWithRequests />
-      </ConnectionProvider>
+      </RequestStateProvider>
     );
 
     const tree = mount(<MockComponentTree />);
@@ -69,9 +69,9 @@ describe('HOC created by withResources utility', () => {
     const MockComponentWithRequests = withRequests(mapRequestsToProps)(MockComponent);
 
     const MockComponentTree = () => (
-      <ConnectionProvider>
+      <RequestStateProvider>
         <MockComponentWithRequests id={1} />
-      </ConnectionProvider>
+      </RequestStateProvider>
     );
 
     const tree = mount(<MockComponentTree />);

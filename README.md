@@ -17,24 +17,35 @@ Coming soonish
 
 ## Usage
 
-First, we should define at least one API request with the Request class provided by this library.
+First, we define which requests our app can make.
 
 ```js
 // requests.js
 import { Request } from 'react-with-resources';
 
-export const getProductData = new Request({
-  request: async (id) => {
-    // Here we define how the product should be fetched
-    const response = await fetch(`example.com/products/${id}`);
+export const fetchProducts = new Request({
+  // how the product should be fetched
+  request: async () => {
+    const response = await fetch(`example.com/products`);
     return await response.json();
   },
-  defaults: {
-    // These can be overriden when connecting request to component
-    executeOnMount: true,
-    requestProp: 'fetchProduct',
-    resultProp: 'product',
-  }
+  defaultMapping: {
+    // which prop will hold status of the request
+    statusProp: 'products',
+    // which prop acts as a function to execute request
+    requestProp: 'fetchProducts',
+  },
+})
+
+export const fetchShop = new Request({
+  request: async (id) => {
+    const response = await fetch(`example.com/shops/${id}`);
+    return await response.json();
+  },
+  defaultMapping: {
+    statusProp: 'shop',
+    requestProp: 'fetchShop',
+  },
 });
 ```
 
@@ -56,55 +67,48 @@ class App extends React.Component {
 }
 ```
 
-Now, we can consume the state in components using Consumer.
+Now, for the interesting part. How to map requests to components?
+
+You can do this with either render props (using RequestStateConsumer component) or HOC (using withRequests utility). Lets look at the HOC approach first, as that might be simpler for at least people coming from Redux world.
 
 ```jsx
-// ProductPage.js
+// Shop.js
 import React from 'react';
-import { Consumer } from 'react-with-resources';
-import { getProductData } from './requests';
+import { withRequests } from 'react-with-resources';
+import { fetchProducts, fetchShop } from './requests';
 
-// To map requests to the consumer, we need to define which property
-// will contain which request state. Here you can also make the
-// requests change depending on your components props. If request
-// changes, it is automatically executed with new params.
-const mapRequestsToProps = (props) => ([
-  {
-    request: getProductData.withParams(props.match.params.id),
-    // If you don't want to use the defaults, or haven't provided them:
-    statusProp: 'specialProduct',
-    requestProp: 'fetchSpecialProduct',
-    executeOnMount: true
-  }
+// select which requests this component should depend on
+const requests = (props) => ([
+  fetchProducts,
+  // define that shop's id should depend on components id prop
+  fetchShop.withParams(props.id)
 ]);
 
-class ProductPage extends React.Component {
-  render() {
-    return (
-      <Consumer requests={mapRequestsToProps}>
-        {({ specialProduct, fetchSpecialProduct }) => (
-          // Product has 3 properties:
-          // - loading (boolean)
-          // - error (any)
-          // - result (any)
-          <div className="product-page">
-            {
-              product.result ?
-                <div>
-                  <h1>{ product.result.name }</h1>
-                  <img src={ product.result.imgUrl }/>
-                </div>
-                :
-                <div>
-                  Loading product, please wait...
-                </div>
-            }
-          </div>
-        )}
-      </Consumer>
-    );
-  }
-}
+const Shop = ({ shop, products, fetchProducts }) => (
+  // shop and products are statusProps, which contain:
+  // - result (any)
+  // - error (any)
+  // - loading (boolean)
+  <div>
+    {
+      // when accessing result properties make sure
+      // that result is actually available
+      shop.result && <h1>{shop.result.name}</h1>
+    }
+
+    {
+      products.result && products.result.map(product => (
+        <div className="card">
+          <img src={product.image}/>
+          <span>{product.name}</span>
+        </div>
+      ))
+    }
+  </div>
+)
+
+// remember to map request state to the actual component
+export default withRequests(requests)(ProductPage);
 ```
 
 ## API Reference
