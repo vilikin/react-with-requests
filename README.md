@@ -13,7 +13,9 @@ Library that allows you to integrate your React app into a backend with ease. It
 
 ## Installation
 
-Coming soonish
+```
+npm i react-with-requests
+```
 
 ## Usage
 
@@ -113,4 +115,4 @@ export default withRequests(requests)(ProductPage);
 
 ## API Reference
 
-Coming soonish
+Coming soon?
