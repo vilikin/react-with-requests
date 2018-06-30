@@ -1,7 +1,7 @@
 {
   "name": "react-with-requests",
   "version": "1.0.0",
-  "description": "",
+  "description": "Allows React components to declare dependencies on requests",
   "main": "dist/main.js",
   "scripts": {
     "start": "webpack-dev-server --mode development",
