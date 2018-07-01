@@ -1,12 +1,10 @@
 {
   "name": "react-with-requests",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Allows React components to declare dependencies on requests",
-  "main": "dist/main.js",
+  "main": "dist/index.js",
   "scripts": {
-    "start": "webpack-dev-server --mode development",
-    "build": "webpack --mode production",
-    "eslint": "./node_modules/.bin/eslint ./src ./demo"
+    "build": "babel ./src -d ./dist"
   },
   "repository": {
     "type": "git",
@@ -16,7 +14,6 @@
   "license": "MIT",
   "homepage": "https://github.com/vilikin/react-with-requests#readme",
   "dependencies": {
-    "react": "^16.3.2",
     "joi-browser": "^13.0.1",
     "lodash": "^4.17.10",
     "object-hash": "^1.3.0",
@@ -42,12 +39,16 @@
     "jest": "^22.4.3",
     "jest-enzyme": "^6.0.0",
     "react-reconciler": "^0.11.0",
-    "react-test-renderer": "^16.4.0",
-    "webpack": "^4.6.0",
-    "webpack-cli": "^2.1.2",
-    "webpack-dev-server": "^3.1.3"
+    "react-test-renderer": "^16.4.0"
+  },
+  "peerDependencies": {
+    "react": "^16.3.2",
+    "react-dom": "^16.4.1"
   },
   "jest": {
     "setupTestFrameworkScriptFile": "./node_modules/jest-enzyme/lib/index.js"
-  }
+  },
+  "files": [
+    "dist"
+  ]
 }
