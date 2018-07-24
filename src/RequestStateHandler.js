@@ -9,9 +9,6 @@ export default class RequestStateHandler {
 
     this.stateChangeListeners = [];
     this.lastStateChangeListenerId = 0;
-
-    // TODO Remove this
-    window.reqstate = this;
   }
 
   // TODO modify state to only contain an array if nothing else needed
