@@ -8,7 +8,6 @@ export default class RequestStateHandler {
     };
 
     this.stateChangeListeners = [];
-    this.lastStateChangeListenerId = 0;
   }
 
   // TODO modify state to only contain an array if nothing else needed
@@ -22,16 +21,27 @@ export default class RequestStateHandler {
   );
 
   addStateChangeListener = (callback) => {
+    const id = this.getNextStateChangeListenerId();
+
     this.stateChangeListeners.push({
       callback,
-      id: ++this.lastStateChangeListenerId,
+      id,
     });
 
-    return this.lastStateChangeListenerId;
+    return id;
+  }
+
+  getNextStateChangeListenerId = () => {
+    const initialId = 1;
+
+    return _.reduce(this.stateChangeListeners, (result, listener) => {
+      if (listener.id >= result) return listener.id + 1;
+      return result;
+    }, initialId);
   }
 
   removeStateChangeListener = (id) => {
-    _.remove(this.stateChangeListeners, listener => listener.id === id);
+    _.remove(this.stateChangeListeners, { id });
   }
 
   callStateChangeListeners = () => {
