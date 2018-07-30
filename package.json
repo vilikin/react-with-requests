@@ -1,6 +1,6 @@
 {
   "name": "react-with-requests",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "description": "Allows React components to declare dependencies on requests",
   "main": "dist/index.js",
   "scripts": {

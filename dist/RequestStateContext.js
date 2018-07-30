@@ -11,6 +11,8 @@ var _react2 = _interopRequireDefault(_react);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
+// eslint-disable-line
+
 var requestStateContext = void 0;
 
 function getRequestStateContext() {

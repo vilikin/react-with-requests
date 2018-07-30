@@ -39,18 +39,27 @@ var RequestStateHandler = function RequestStateHandler() {
   };
 
   this.addStateChangeListener = function (callback) {
+    var id = _this.getNextStateChangeListenerId();
+
     _this.stateChangeListeners.push({
       callback: callback,
-      id: ++_this.lastStateChangeListenerId
+      id: id
     });
 
-    return _this.lastStateChangeListenerId;
+    return id;
+  };
+
+  this.getNextStateChangeListenerId = function () {
+    var initialId = 1;
+
+    return _lodash2.default.reduce(_this.stateChangeListeners, function (result, listener) {
+      if (listener.id >= result) return listener.id + 1;
+      return result;
+    }, initialId);
   };
 
   this.removeStateChangeListener = function (id) {
-    _lodash2.default.remove(_this.stateChangeListeners, function (listener) {
-      return listener.id === id;
-    });
+    _lodash2.default.remove(_this.stateChangeListeners, { id: id });
   };
 
   this.callStateChangeListeners = function () {
@@ -131,10 +140,6 @@ var RequestStateHandler = function RequestStateHandler() {
   };
 
   this.stateChangeListeners = [];
-  this.lastStateChangeListenerId = 0;
-
-  // TODO Remove this
-  window.reqstate = this;
 }
 
 // TODO modify state to only contain an array if nothing else needed
