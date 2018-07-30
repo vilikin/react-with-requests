@@ -1,5 +1,5 @@
 import Enzyme, { mount } from 'enzyme';
-import React from 'react';
+import React from 'react'; // eslint-disable-line
 import Adapter from './util/ReactSixteenAdapter';
 
 import RequestStateProvider from '../src/RequestStateProvider';
